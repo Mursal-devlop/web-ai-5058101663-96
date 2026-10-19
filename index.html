@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ProduktivHari - Ruang Kerja & Fokus Harian</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
+
+  <!-- Top Navigation -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-400 flex items-center justify-center text-white shadow-md shadow-brand-500/20">
+          <i class="fa-solid fa-bolt text-lg"></i>
+        </div>
+        <div>
+          <span class="text-xl font-bold tracking-tight bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">ProduktivHari</span>
+          <span class="hidden sm:inline-block ml-2 px-2 py-0.5 text-xs font-semibold bg-emerald-50 text-emerald-600 rounded-full border border-emerald-200">Mode Fokus Aktif</span>
+        </div>
+      </div>
+      
+      <div class="flex items-center space-x-4">
+        <div class="text-right hidden sm:block">
+          <div id="liveClock" class="text-lg font-bold font-mono text-slate-800 leading-none">00:00:00</div>
+          <div id="liveDate" class="text-xs text-slate-500 font-medium mt-1">Memuat tanggal...</div>
+        </div>
+        <button onclick="resetDayConfirm()" title="Mulai Hari Baru / Reset Data" class="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-colors border border-transparent hover:border-rose-100">
+          <i class="fa-solid fa-arrows-rotate text-sm"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- Welcome & Daily Motivation Card -->
+    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-900 via-brand-700 to-slate-900 text-white p-6 sm:p-8 shadow-xl shadow-brand-600/10">
+      <div class="absolute -right-12 -top-12 w-64 h-64 bg-white/5 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        <div class="space-y-2 max-w-2xl">
+          <div class="flex items-center space-x-2">
+            <span class="px-2.5 py-1 text-xs font-semibold bg-white/10 backdrop-blur-md rounded-full text-indigo-100 border border-white/10" id="greetingBadge">
+              <i class="fa-regular fa-sun mr-1"></i> Selamat Beraktivitas
+            </span>
+          </div>
+          <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight" id="greetingText">Siap menaklukkan hari ini?</h1>
+          <p id="quoteText" class="text-sm sm:text-base text-indigo-100/90 italic">
+            "Fokus bukanlah tentang mengatakan ya untuk hal yang harus kamu lakukan, tetapi mengatakan tidak untuk ratusan hal baik lainnya."
+          </p>
+        </div>
+
+        <!-- Task Completion Ring/Stats -->
+        <div class="w-full md:w-auto bg-white/10 backdrop-blur-md border border-white/15 p-4 rounded-2xl flex items-center gap-4 min-w-[240px]">
+          <div class="relative w-16 h-16 flex items-center justify-center flex-shrink-0">
+            <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+              <path class="text-white/20" stroke-width="3.5" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+              <path id="progressCircle" class="text-emerald-400 transition-all duration-500 stroke-current" stroke-dasharray="0, 100" stroke-linecap="round" stroke-width="3.5" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+            </svg>
+            <span id="progressPercent" class="absolute font-bold text-sm">0%</span>
+          </div>
+          <div>
+            <div class="text-xs uppercase tracking-wider text-indigo-200 font-semibold">Progres Target</div>
+            <div class="text-xl font-bold"><span id="completedCount">0</span> / <span id="totalCount">0</span> Selesai</div>
+            <div class="text-xs text-indigo-200" id="progressSubtitle">Belum ada tugas</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Prime Focus Input Banner -->
+      <div class="mt-6 pt-5 border-t border-white/10 flex flex-col sm:flex-row items-center gap-3">
+        <label for="dailyFocusInput" class="text-sm font-semibold flex items-center gap-2 whitespace-nowrap text-amber-300">
+          <i class="fa-solid fa-bullseye"></i> Fokus Tunggal Hari Ini:
+        </label>
+        <div class="relative w-full flex-grow">
+          <input 
+            type="text" 
+            id="dailyFocusInput"
+            placeholder="Tulis 1 prioritas paling krusial yang wajib selesai hari ini..." 
+            class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 text-sm placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:bg-white/20 transition-all text-white font-medium"
+          >
+          <button id="saveFocusBtn" class="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 bg-amber-400 hover:bg-amber-300 text-slate-900 rounded-lg text-xs font-bold transition">
+            Simpan
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Grid Layout for Core Tools -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+      <!-- Left Column: Tasks Manager (7 Cols) -->
+      <section class="lg:col-span-7 space-y-6">
+        
+        <!-- Task Manager Card -->
+        <div class="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm">
+          <div class="flex items-center justify-between mb-5">
+            <div class="flex items-center space-x-2.5">
+              <div class="w-8 h-8 rounded-lg bg-brand-50 text-brand-600 flex items-center justify-center font-bold">
+                <i class="fa-solid fa-list-check"></i>
+              </div>
+              <h2 class="text-lg font-bold text-slate-800">Daftar Tugas & Rencana</h2>
+            </div>
+            <!-- Filter Tabs -->
+            <div class="flex bg-slate-100 p-1 rounded-xl text-xs font-semibold text-slate-600">
+              <button onclick="setFilter('all')" id="filter-all" class="filter-tab px-3 py-1 rounded-lg bg-white shadow-sm text-slate-800 transition">Semua</button>
+              <button onclick="setFilter('active')" id="filter-active" class="filter-tab px-3 py-1 rounded-lg hover:text-slate-900 transition">Tertunda</button>
+              <button onclick="setFilter('completed')" id="filter-completed" class="filter-tab px-3 py-1 rounded-lg hover:text-slate-900 transition">Selesai</button>
+            </div>
+          </div>
+
+          <!-- Add Task Form -->
+          <form id="taskForm" class="mb-5 space-y-3" onsubmit="handleAddTask(event)">
+            <div class="flex flex-col sm:flex-row gap-2">
+              <div class="relative flex-grow">
+                <input 
+                  type="text" 
+                  id="taskInput" 
+                  placeholder="Tambah agenda baru..." 
+                  required
+                  class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition"
+                >
+              </div>
+              <div class="flex gap-2">
+                <select id="prioritySelect" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                  <option value="Tinggi">🔥 Mendesak</option>
+                  <option value="Sedang" selected>⚡ Normal</option>
+                  <option value="Rendah">🌱 Santai</option>
+                </select>
+                <button 
+                  type="submit" 
+                  class="bg-brand-600 hover:bg-brand-700 active:scale-95 text-white font-semibold text-sm px-5 py-3 rounded-xl transition duration-150 flex items-center gap-1.5 shadow-sm shadow-brand-500/20 whitespace-nowrap"
+                >
+                  <i class="fa-solid fa-plus text-xs"></i>
+                  <span>Tambah</span>
+                </button>
+              </div>
+            </div>
+          </form>
+
+          <!-- Task List -->
+          <ul id="taskList" class="divide-y divide-slate-100 min-h-[160px] max-h-[460px] overflow-y-auto pr-1">
+            <!-- Dynamically Rendered -->
+          </ul>
+
+          <!-- Empty State -->
+          <div id="emptyTaskState" class="hidden py-10 text-center">
+            <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto text-slate-400 mb-3">
+              <i class="fa-regular fa-calendar-check text-2xl"></i>
+            </div>
+            <p class="text-sm font-semibold text-slate-600">Tidak ada tugas pada tampilan ini.</p>
+            <p class="text-xs text-slate-400 mt-1">Tambahkan rencana baru atau nikmati waktu istirahatmu!</p>
+          </div>
+        </div>
+
+        <!-- Quick Habits / Rutinitas Harian -->
+        <div class="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm">
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center space-x-2.5">
+              <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+                <i class="fa-solid fa-seedling"></i>
+              </div>
+              <div>
+                <h2 class="text-lg font-bold text-slate-800">Kebiasaan Sehat Hari Ini</h2>
+                <p class="text-xs text-slate-500">Rutinitas mikro penjaga stamina pikiran & raga</p>
+              </div>
+            </div>
+            <span id="habitSummary" class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">0/4 Terpenuhi</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="habitsContainer">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+      </section>
+
+      <!-- Right Column: Focus Tools & Notes (5 Cols) -->
+      <section class="lg:col-span-5 space-y-6">
+
+        <!-- Pomodoro Focus Timer -->
+        <div class="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm text-center relative overflow-hidden">
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center space-x-2">
+              <div class="w-8 h-8 rounded-lg bg-rose-50 text-rose-500 flex items-center justify-center">
+                <i class="fa-solid fa-stopwatch"></i>
+              </div>
+              <h3 class="font-bold text-slate-800">Timer Pomodoro</h3>
+            </div>
+            <div class="text-xs font-semibold text-slate-400 bg-slate-100 px-2.5 py-1 rounded-full" id="pomodoroCycle">Siklus #1</div>
+          </div>
+
+          <!-- Timer Mode Switch -->
+          <div class="flex justify-center p-1 bg-slate-100 rounded-xl max-w-xs mx-auto mb-6 text-xs font-semibold text-slate-600">
+            <button onclick="setTimerMode('work')" id="mode-work" class="flex-1 py-1.5 rounded-lg bg-white shadow-sm text-slate-900 transition">Fokus (25m)</button>
+            <button onclick="setTimerMode('short')" id="mode-short" class="flex-1 py-1.5 rounded-lg hover:text-slate-900 transition">Rehat (5m)</button>
+            <button onclick="setTimerMode('long')" id="mode-long" class="flex-1 py-1.5 rounded-lg hover:text-slate-900 transition">Panjang (15m)</button>
+          </div>
+
+          <!-- Big Countdown Display -->
+          <div class="py-4">
+            <div id="timerDisplay" class="text-6xl font-black font-mono tracking-tighter text-slate-800 drop-shadow-sm select-none">
+              25:00
+            </div>
+            <p id="timerStateLabel" class="text-xs uppercase tracking-widest text-slate-400 font-semibold mt-2">Waktunya Konsentrasi Penuh</p>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex justify-center items-center gap-3 mt-4">
+            <button 
+              id="timerToggleBtn" 
+              onclick="toggleTimer()" 
+              class="w-36 py-3 px-4 bg-brand-600 hover:bg-brand-700 active:scale-95 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/25 transition flex items-center justify-center gap-2"
+            >
+              <i id="timerBtnIcon" class="fa-solid fa-play"></i>
+              <span id="timerBtnText">Mulai</span>
+            </button>
+            <button 
+              onclick="resetTimer()" 
+              title="Reset Timer"
+              class="w-12 h-12 bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-600 rounded-2xl transition flex items-center justify-center"
+            >
+              <i class="fa-solid fa-rotate-right"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Brain Dump / Daily Scratchpad Card -->
+        <div class="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center space-x-2">
+              <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+                <i class="fa-solid fa-pen-fancy"></i>
+              </div>
+              <h3 class="font-bold text-slate-800">Catatan Cepat & Refleksi</h3>
+            </div>
+            <span id="saveStatus" class="text-xs text-slate-400 flex items-center gap-1 font-medium">
+              <i class="fa-solid fa-cloud"></i> Tersimpan otomatis
+            </span>
+          </div>
+          <p class="text-xs text-slate-500 mb-3">Catat ide mendadak, distraksi yang ingin diabaikan, atau catatan rapat.</p>
+          <textarea 
+            id="scratchpad" 
+            rows="6" 
+            placeholder="Tulis apa pun di sini, sistem menyimpan secara realtime..."
+            class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white resize-none transition"
+            oninput="handleScratchpadChange(this.value)"
+          ></textarea>
+        </div>
+
+        <!-- Productivity Tips Pill -->
+        <div class="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200/80 rounded-2xl p-4 flex items-start gap-3">
+          <i class="fa-solid fa-lightbulb text-emerald-600 text-lg mt-0.5"></i>
+          <div>
+            <h4 class="text-xs font-bold text-emerald-900 uppercase tracking-wide">Teknik 2 Menit</h4>
+            <p class="text-xs text-emerald-800 mt-0.5 leading-relaxed">
+              Jika sebuah tugas membutuhkan waktu kurang dari 2 menit untuk diselesaikan, lakukan sekarang juga tanpa menundanya ke to-do list.
+            </p>
+          </div>
+        </div>
+
+      </section>
+
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t border-slate-200 py-6 mt-12 text-center text-xs text-slate-400">
+    <p>© <span id="currentYear"></span> ProduktivHari. Dibuat untuk membantumu fokus berkarya tanpa distraksi.</p>
+  </footer>
+
+  <!-- Notification Audio Beep Generator (Web Audio API) -->
+  <script>
+    function triggerChime() {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.15); // A5
+
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.6);
+      } catch (e) {
+        console.warn('Audio Context error: ', e);
+      }
+    }
+
+    /* ========================================================
+       STATE MANAGEMENT (Local Storage)
+    ======================================================== */
+    const STORAGE_KEY_TASKS = 'pd_tasks_v1';
+    const STORAGE_KEY_FOCUS = 'pd_focus_v1';
+    const STORAGE_KEY_HABITS = 'pd_habits_v1';
+    const STORAGE_KEY_NOTES = 'pd_notes_v1';
+
+    let tasks = JSON.parse(localStorage.getItem(STORAGE_KEY_TASKS)) || [
+      { id: 1, text: 'Evaluasi target mingguan', priority: 'Tinggi', completed: false },
+      { id: 2, text: 'Selesaikan dokumen presentasi utama', priority: 'Sedang', completed: false },
+      { id: 3, text: 'Balas email & koordinasi tim', priority: 'Rendah', completed: true }
+    ];
+
+    let habits = JSON.parse(localStorage.getItem(STORAGE_KEY_HABITS)) || [
+      { id: 1, text: 'Minum 2L Air Putih', icon: 'fa-glass-water', done: false },
+      { id: 2, text: 'Istirahatkan Mata (20-20-20)', icon: 'fa-eye', done: false },
+      { id: 3, text: 'Membaca Buku / Artikel 15 Mnt', icon: 'fa-book-open', done: false },
+      { id: 4, text: 'Peregangan Tubuh 10 Mnt', icon: 'fa-person-walking', done: false }
+    ];
+
+    let currentFilter = 'all';
+
+    /* ========================================================
+       INIT & REAL-TIME CLOCK
+    ======================================================== */
+    document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+    function updateDateTime() {
+      const now = new Date();
+      
+      // Live Clock
+      const timeStr = now.toLocaleTimeString('id-ID', { hour12: false });
+      document.getElementById('liveClock').textContent = timeStr;
+
+      // Live Date
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      document.getElementById('liveDate').textContent = now.toLocaleDateString('id-ID', options);
+
+      // Greeting logic
+      const hour = now.getHours();
+      let greeting = 'Selamat Datang';
+      let icon = 'fa-sun';
+      if (hour >= 4 && hour < 11) {
+        greeting = 'Selamat Pagi';
+        icon = 'fa-cloud-sun';
+      } else if (hour >= 11 && hour < 15) {
+        greeting = 'Selamat Siang';
+        icon = 'fa-sun';
+      } else if (hour >= 15 && hour < 18) {
+        greeting = 'Selamat Sore';
+        icon = 'fa-cloud-sun-rain';
+      } else {
+        greeting = 'Selamat Malam';
+        icon = 'fa-moon';
+      }
+      
+      document.getElementById('greetingBadge').innerHTML = `<i class="fa-solid ${icon} mr-1"></i> ${greeting}`;
+    }
+    setInterval(updateDateTime, 1000);
+    updateDateTime();
+
+    // Quotes pool
+    const quotes = [
+      `"Fokus bukanlah tentang mengatakan ya untuk hal yang harus kamu lakukan, tetapi mengatakan tidak untuk ratusan hal baik lainnya."`,
+      `"Bukan karena hal itu sulit kita tidak berani, tapi karena kita tidak berani maka hal itu menjadi sulit."`,
+      `"Rahasia untuk maju adalah memulai. Rahasia memulai adalah memecah tugas besar menjadi bagian-bagian kecil."`,
+      `"Disiplin adalah memilih antara apa yang kamu inginkan sekarang dengan apa yang paling kamu inginkan nanti."`,
+      `"Satu jam fokus penuh bernilai lebih dari 5 jam kerja terdistraksi."`
+    ];
+    document.getElementById('quoteText').textContent = quotes[Math.floor(Math.random() * quotes.length)];
+
+    /* ========================================================
+       DAILY PRIME FOCUS
+    ======================================================== */
+    const dailyFocusInput = document.getElementById('dailyFocusInput');
+    const savedFocus = localStorage.getItem(STORAGE_KEY_FOCUS) || '';
+    dailyFocusInput.value = savedFocus;
+
+    document.getElementById('saveFocusBtn').addEventListener('click', () => {
+      localStorage.setItem(STORAGE_KEY_FOCUS, dailyFocusInput.value.trim());
+      showToast('Fokus utama berhasil diperbarui!');
+    });
+    dailyFocusInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        localStorage.setItem(STORAGE_KEY_FOCUS, dailyFocusInput.value.trim());
+        showToast('Fokus utama berhasil diperbarui!');
+      }
+    });
+
+    /* ========================================================
+       TASK MANAGEMENT
+    ======================================================== */
+    function saveTasks() {
+      localStorage.setItem(STORAGE_KEY_TASKS, JSON.stringify(tasks));
+      renderTasks();
+      updateProgress();
+    }
+
+    function handleAddTask(e) {
+      e.preventDefault();
+      const input = document.getElementById('taskInput');
+      const priority = document.getElementById('prioritySelect').value;
+      const text = input.value.trim();
+
+      if (!text) return;
+
+      tasks.unshift({
+        id: Date.now(),
+        text: text,
+        priority: priority,
+        completed: false
+      });
+
+      input.value = '';
+      saveTasks();
+    }
+
+    function toggleTask(id) {
+      tasks = tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
+      saveTasks();
+    }
+
+    function deleteTask(id) {
+      tasks = tasks.filter(t => t.id !== id);
+      saveTasks();
+    }
+
+    function setFilter(filter) {
+      currentFilter = filter;
+      document.querySelectorAll('.filter-tab').forEach(btn => {
+        btn.classList.remove('bg-white', 'shadow-sm', 'text-slate-800');
+        btn.classList.add('hover:text-slate-900');
+      });
+      const activeBtn = document.getElementById(`filter-${filter}`);
+      if (activeBtn) {
+        activeBtn.classList.add('bg-white', 'shadow-sm', 'text-slate-800');
+        activeBtn.classList.remove('hover:text-slate-900');
+      }
+      renderTasks();
+    }
+
+    function renderTasks() {
+      const taskList = document.getElementById('taskList');
+      const emptyState = document.getElementById('emptyTaskState');
+      taskList.innerHTML = '';
+
+      let filtered = tasks;
+      if (currentFilter === 'active') filtered = tasks.filter(t => !t.completed);
+      if (currentFilter === 'completed') filtered = tasks.filter(t => t.completed);
+
+      if (filtered.length === 0) {
+        emptyState.classList.remove('hidden');
+      } else {
+        emptyState.classList.add('hidden');
+        filtered.forEach(task => {
+          const li = document.createElement('li');
+          li.className = `py-3.5 px-3 flex items-center justify-between gap-3 group transition rounded-xl ${task.completed ? 'bg-slate-50/60' : 'hover:bg-slate-50'}`;
+
+          // Badge Color logic
+          let badgeColor = 'bg-blue-50 text-blue-600 border-blue-200';
+          if (task.priority === 'Tinggi') badgeColor = 'bg-rose-50 text-rose-600 border-rose-200';
+          if (task.priority === 'Rendah') badgeColor = 'bg-emerald-50 text-emerald-600 border-emerald-200';
+
+          li.innerHTML = `
+            <div class="flex items-center gap-3 min-w-0">
+              <button 
+                onclick="toggleTask(${task.id})"
+                class="w-5 h-5 rounded-md flex items-center justify-center border transition-all flex-shrink-0 ${
+                  task.completed 
+                    ? 'bg-emerald-500 border-emerald-500 text-white' 
+                    : 'border-slate-300 hover:border-brand-500 bg-white'
+                }"
+              >
+                ${task.completed ? '<i class="fa-solid fa-check text-[10px]"></i>' : ''}
+              </button>
+              <div class="truncate">
+                <span class="text-sm font-medium ${task.completed ? 'line-through text-slate-400' : 'text-slate-700'}">
+                  ${escapeHtml(task.text)}
+                </span>
+                <div class="flex items-center gap-2 mt-0.5">
+                  <span class="inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full border ${badgeColor}">
+                    ${task.priority}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <button 
+              onclick="deleteTask(${task.id})" 
+              class="opacity-0 group-hover:opacity-100 p-1.5 text-slate-300 hover:text-rose-500 rounded-lg hover:bg-white transition flex-shrink-0"
+              title="Hapus Tugas"
+            >
+              <i class="fa-regular fa-trash-can text-sm"></i>
+            </button>
+          `;
+          taskList.appendChild(li);
+        });
+      }
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function updateProgress() {
+      const total = tasks.length;
+      const completed = tasks.filter(t => t.completed).length;
+      const percentage = total === 0 ? 0 : Math.round((completed / total) * 100);
+
+      document.getElementById('totalCount').textContent = total;
+      document.getElementById('completedCount').textContent = completed;
+      document.getElementById('progressPercent').textContent = `${percentage}%`;
+
+      const circle = document.getElementById('progressCircle');
+      circle.setAttribute('stroke-dasharray', `${percentage}, 100`);
+
+      const subtitle = document.getElementById('progressSubtitle');
+      if (total === 0) {
+        subtitle.textContent = "Belum ada tugas";
+      } else if (percentage === 100) {
+        subtitle.textContent = "Luar biasa! Target tuntas 🎉";
+      } else if (percentage >= 50) {
+        subtitle.textContent = "Lebih dari setengah jalan!";
+      } else {
+        subtitle.textContent = "Mulai dari langkah pertama";
+      }
+    }
+
+    /* ========================================================
+       HABIT TRACKER
+    ======================================================== */
+    function saveHabits() {
+      localStorage.setItem(STORAGE_KEY_HABITS, JSON.stringify(habits));
+      renderHabits();
+    }
+
+    function toggleHabit(id) {
+      habits = habits.map(h => h.id === id ? { ...h, done: !h.done } : h);
+      saveHabits();
+    }
+
+    function renderHabits() {
+      const container = document.getElementById('habitsContainer');
+      container.innerHTML = '';
+      let completedCount = 0;
+
+      habits.forEach(habit => {
+        if (habit.done) completedCount++;
+        const item = document.createElement('div');
+        item.onclick = () => toggleHabit(habit.id);
+        item.className = `cursor-pointer border rounded-2xl p-3 flex items-center justify-between transition-all select-none ${
+          habit.done 
+            ? 'bg-emerald-50/70 border-emerald-200 text-emerald-900' 
+            : 'bg-slate-50 border-slate-200/80 text-slate-700 hover:border-slate-300'
+        }`;
+        item.innerHTML = `
+          <div class="flex items-center space-x-3">
+            <div class="w-8 h-8 rounded-xl flex items-center justify-center text-sm ${
+              habit.done ? 'bg-emerald-500 text-white' : 'bg-white text-slate-500 border border-slate-200'
+            }">
+              <i class="fa-solid ${habit.icon}"></i>
+            </div>
+            <span class="text-xs font-semibold ${habit.done ? 'line-through opacity-75' : ''}">${habit.text}</span>
+          </div>
+          <div class="w-5 h-5 rounded-full flex items-center justify-center border ${
+            habit.done ? 'border-emerald-500 bg-emerald-500 text-white' : 'border-slate-300 bg-white'
+          }">
+            ${habit.done ? '<i class="fa-solid fa-check text-[9px]"></i>' : ''}
+          </div>
+        `;
+        container.appendChild(item);
+      });
+
+      document.getElementById('habitSummary').textContent = `${completedCount}/${habits.length} Terpenuhi`;
+    }
+
+    /* ========================================================
+       SCRATCHPAD / NOTES
+    ======================================================== */
+    const scratchpad = document.getElementById('scratchpad');
+    scratchpad.value = localStorage.getItem(STORAGE_KEY_NOTES) || '';
+
+    let noteTimeout;
+    function handleScratchpadChange(val) {
+      const status = document.getElementById('saveStatus');
+      status.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin text-brand-600"></i> Menyimpan...`;
+      clearTimeout(noteTimeout);
+      noteTimeout = setTimeout(() => {
+        localStorage.setItem(STORAGE_KEY_NOTES, val);
+        status.innerHTML = `<i class="fa-solid fa-cloud text-emerald-600"></i> Tersimpan`;
+      }, 500);
+    }
+
+    /* ========================================================
+       POMODORO TIMER
+    ======================================================== */
+    let timerModes = {
+      work: 25 * 60,
+      short: 5 * 60,
+      long: 15 * 60
+    };
+
+    let currentMode = 'work';
+    let timeLeft = timerModes[currentMode];
+    let timerInterval = null;
+    let isRunning = false;
+    let completedCycles = 1;
+
+    function updateTimerDisplay() {
+      const mins = Math.floor(timeLeft / 60);
+      const secs = timeLeft % 60;
+      document.getElementById('timerDisplay').textContent = 
+        `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    }
+
+    function setTimerMode(mode) {
+      if (isRunning) pauseTimer();
+      currentMode = mode;
+      timeLeft = timerModes[mode];
+
+      document.querySelectorAll('#mode-work, #mode-short, #mode-long').forEach(b => {
+        b.classList.remove('bg-white', 'shadow-sm', 'text-slate-900');
+        b.classList.add('hover:text-slate-900');
+      });
+
+      const activeBtn = document.getElementById(`mode-${mode}`);
+      activeBtn.classList.add('bg-white', 'shadow-sm', 'text-slate-900');
+      activeBtn.classList.remove('hover:text-slate-900');
+
+      const stateLabel = document.getElementById('timerStateLabel');
+      if (mode === 'work') stateLabel.textContent = "Waktunya Konsentrasi Penuh";
+      else if (mode === 'short') stateLabel.textContent = "Rehat Sejenak (5 Menit)";
+      else stateLabel.textContent = "Istirahat Panjang (15 Menit)";
+
+      updateTimerDisplay();
+    }
+
+    function toggleTimer() {
+      if (isRunning) {
+        pauseTimer();
+      } else {
+        startTimer();
+      }
+    }
+
+    function startTimer() {
+      isRunning = true;
+      document.getElementById('timerBtnText').textContent = 'Jeda';
+      document.getElementById('timerBtnIcon').className = 'fa-solid fa-pause';
+      document.getElementById('timerToggleBtn').classList.replace('bg-brand-600', 'bg-amber-600');
+      document.getElementById('timerToggleBtn').classList.replace('hover:bg-brand-700', 'hover:bg-amber-700');
+
+      timerInterval = setInterval(() => {
+        if (timeLeft > 0) {
+          timeLeft--;
+          updateTimerDisplay();
+        } else {
+          clearInterval(timerInterval);
+          isRunning = false;
+          triggerChime();
+          handleTimerCompletion();
+        }
+      }, 1000);
+    }
+
+    function pauseTimer() {
+      clearInterval(timerInterval);
+      isRunning = false;
+      document.getElementById('timerBtnText').textContent = 'Lanjut';
+      document.getElementById('timerBtnIcon').className = 'fa-solid fa-play';
+      document.getElementById('timerToggleBtn').classList.replace('bg-amber-600', 'bg-brand-600');
+      document.getElementById('timerToggleBtn').classList.replace('hover:bg-amber-700', 'hover:bg-brand-700');
+    }
+
+    function resetTimer() {
+      pauseTimer();
+      timeLeft = timerModes[currentMode];
+      document.getElementById('timerBtnText').textContent = 'Mulai';
+      updateTimerDisplay();
+    }
+
+    function handleTimerCompletion() {
+      resetTimer();
+      if (currentMode === 'work') {
+        completedCycles++;
+        document.getElementById('pomodoroCycle').textContent = `Siklus #${completedCycles}`;
+        alert('🎉 Sesi Fokus Selesai! Luangkan waktu sejenak untuk istirahat mata dan meregangkan otot.');
+        setTimerMode('short');
+      } else {
+        alert('☕ Waktu istirahat selesai! Siap kembali produktif?');
+        setTimerMode('work');
+      }
+    }
+
+    /* ========================================================
+       RESET & UTILS
+    ======================================================== */
+    function resetDayConfirm() {
+      if (confirm('Apakah Anda ingin menyegarkan hari kerja ini? Tindakan ini akan mengosongkan to-do list dan kebiasaan hari ini.')) {
+        tasks = [];
+        habits = habits.map(h => ({ ...h, done: false }));
+        localStorage.removeItem(STORAGE_KEY_TASKS);
+        localStorage.removeItem(STORAGE_KEY_FOCUS);
+        dailyFocusInput.value = '';
+        saveHabits();
+        renderTasks();
+        updateProgress();
+        showToast('Hari baru telah disiapkan!');
+      }
+    }
+
+    function showToast(message) {
+      const toast = document.createElement('div');
+      toast.className = 'fixed bottom-5 right-5 bg-slate-900 text-white text-xs px-4 py-2.5 rounded-xl shadow-xl z-50 transition-all flex items-center gap-2 border border-slate-700';
+      toast.innerHTML = `<i class="fa-solid fa-check text-emerald-400"></i> ${message}`;
+      document.body.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(10px)';
+        setTimeout(() => toast.remove(), 300);
+      }, 2500);
+    }
+
+    // INITIAL RENDER
+    renderTasks();
+    updateProgress();
+    renderHabits();
+    updateTimerDisplay();
+  </script>
+</body>
+</html>
